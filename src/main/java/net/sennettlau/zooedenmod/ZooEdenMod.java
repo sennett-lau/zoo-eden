@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 @Mod(ZooEdenMod.MOD_ID)
 public class ZooEdenMod {
     // Define mod id in a common place for everything to reference
-    public static final String MOD_ID = "zoo_eden";
+    public static final String MOD_ID = "zooedenmod";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 

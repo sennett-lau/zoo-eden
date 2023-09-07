@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "zooedenmod:items/tangerine"
+    "layer0": "zooedenmod:item/tangerine"
   }
 }

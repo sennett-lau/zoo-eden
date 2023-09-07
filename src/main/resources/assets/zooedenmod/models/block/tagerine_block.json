@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "zooedenmod:blocks/tangerine"
+    "all": "zooedenmod:block/tangerine"
   }
 }
