@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "zooedenmod:tangerine"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "item": "zooedenmod:tangerine_seeds"
+  }
+}

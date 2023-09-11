@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "age=0": {
+      "model": "zooedenmod:block/tangerine_stage0"
+    },
+    "age=1": {
+      "model": "zooedenmod:block/tangerine_stage1"
+    },
+    "age=2": {
+      "model": "zooedenmod:block/tangerine_stage2"
+    },
+    "age=3": {
+      "model": "zooedenmod:block/tangerine_stage3"
+    },
+    "age=4": {
+      "model": "zooedenmod:block/tangerine_stage4"
+    },
+    "age=5": {
+      "model": "zooedenmod:block/tangerine_stage5"
+    }
+  }
+}

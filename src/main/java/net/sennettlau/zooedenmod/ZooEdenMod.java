@@ -58,8 +58,8 @@ public class ZooEdenMod {
             event.accept(ModItems.TANGERINE);
         }
 
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(ModBlocks.TANGERINE_BLOCK);
+        if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
+            event.accept(ModItems.TANGERINE_SEEDS);
         }
 
     }

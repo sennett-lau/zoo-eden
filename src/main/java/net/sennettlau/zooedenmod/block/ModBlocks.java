@@ -10,6 +10,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.sennettlau.zooedenmod.ZooEdenMod;
+import net.sennettlau.zooedenmod.block.custom.TangerineCropBlock;
 import net.sennettlau.zooedenmod.item.ModItems;
 
 import java.util.function.Supplier;
@@ -17,7 +18,9 @@ import java.util.function.Supplier;
 public class ModBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ZooEdenMod.MOD_ID);
 
-    public static final RegistryObject<Block> TANGERINE_BLOCK = registerBlock("tangerine_block", () -> new Block(BlockBehaviour.Properties.copy(Blocks.TURTLE_EGG)));
+    public static final RegistryObject<Block> TANGERINE_CROP = registerBlock("tangerine_crop",
+            () -> new TangerineCropBlock(BlockBehaviour.Properties.copy(Blocks.WHEAT).noOcclusion().noCollission()));
+
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
