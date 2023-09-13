@@ -26,7 +26,7 @@ public class ModBlockLootTables extends BlockLootSubProvider {
                 .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(TangerineCropBlock.AGE, 5));
 
         this.add(ModBlocks.TANGERINE_CROP.get(), createCropDrops(ModBlocks.TANGERINE_CROP.get(), ModItems.TANGERINE.get(),
-                ModItems.TANGERINE_SEEDS.get(), lootitemcondition$builder));
+                ModItems.TANGERINE.get(), lootitemcondition$builder));
 
     }
 

@@ -27,7 +27,7 @@
             },
             {
               "type": "minecraft:item",
-              "name": "zooedenmod:tangerine_seeds"
+              "name": "zooedenmod:tangerine"
             }
           ]
         }
@@ -59,7 +59,7 @@
               }
             }
           ],
-          "name": "zooedenmod:tangerine_seeds"
+          "name": "zooedenmod:tangerine"
         }
       ],
       "rolls": 1.0

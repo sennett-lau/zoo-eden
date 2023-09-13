@@ -1,7 +1,7 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
-		"animation.Beaver.idle": {
+		"animation.beaver.idle": {
 			"loop": true,
 			"animation_length": 2,
 			"bones": {
@@ -46,7 +46,7 @@
 				}
 			}
 		},
-		"animation.Beaver.walk": {
+		"animation.beaver.walk": {
 			"loop": true,
 			"animation_length": 1,
 			"bones": {
@@ -204,7 +204,7 @@
 				}
 			}
 		},
-		"animation.Beaver.sprint": {
+		"animation.beaver.sprint": {
 			"loop": true,
 			"animation_length": 0.5,
 			"bones": {
@@ -362,7 +362,7 @@
 				}
 			}
 		},
-		"animation.Beaver.swim": {
+		"animation.beaver.swim": {
 			"loop": true,
 			"animation_length": 1,
 			"bones": {
@@ -464,7 +464,7 @@
 				}
 			}
 		},
-		"animation.Beaver.sit": {
+		"animation.beaver.sit": {
 			"loop": true,
 			"animation_length": 1,
 			"bones": {
@@ -643,7 +643,7 @@
 				}
 			}
 		},
-		"animation.Beaver.attack": {
+		"animation.beaver.attack": {
 			"loop": true,
 			"animation_length": 1.25,
 			"bones": {

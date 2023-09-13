@@ -18,7 +18,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 
     @Override
     protected void buildRecipes(Consumer<FinishedRecipe> pWriter) {
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.TANGERINE_SEEDS.get(), 9)
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.TANGERINE_SEEDS.get(), 3)
                 .requires(ModItems.TANGERINE.get())
                 .unlockedBy(getHasName(ModItems.TANGERINE.get()), has(ModItems.TANGERINE.get()))
                 .save(pWriter);
