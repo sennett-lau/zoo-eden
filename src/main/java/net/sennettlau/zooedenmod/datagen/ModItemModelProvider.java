@@ -20,6 +20,9 @@ public class ModItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         simpleItem(ModItems.TANGERINE);
         simpleItem(ModItems.TANGERINE_SEEDS);
+
+        withExistingParent(ModItems.BEAVER_SPAWN_EGG.getId().getPath(),
+                mcLoc("item/template_spawn_egg"));
     }
 
     private ItemModelBuilder simpleItem(RegistryObject<Item> item) {
