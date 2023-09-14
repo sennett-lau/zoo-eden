@@ -109,7 +109,7 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
 
-        Item itemForTaming = Items.CARROT;
+        Item itemForTaming = Items.GOLDEN_CARROT;
 
         if(isFood(itemstack)) {
             return super.mobInteract(player, hand);
