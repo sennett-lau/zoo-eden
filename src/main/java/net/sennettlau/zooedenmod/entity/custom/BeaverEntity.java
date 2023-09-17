@@ -67,7 +67,7 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
         this.goalSelector.addGoal(2, new PanicGoal(this, 1.25D));
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.25D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.0D, 10.0F, 2.0F, false));
+        this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.0D, 3.0F, 2.0F, false));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(6, (new HurtByTargetGoal(this)).setAlertOthers());
     }
@@ -196,6 +196,10 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
     private <T extends GeoAnimatable> PlayState predicate(AnimationState<T> tAnimationState) {
         if (tAnimationState.isMoving()) {
             tAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.beaver.walk", Animation.LoopType.LOOP));
+            return PlayState.CONTINUE;
+        }
+        if (this.isSitting())  {
+            tAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.beaver.sit", Animation.LoopType.LOOP));
             return PlayState.CONTINUE;
         }
 
