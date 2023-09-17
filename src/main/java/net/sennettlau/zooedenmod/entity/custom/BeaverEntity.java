@@ -13,12 +13,12 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.ShoulderRidingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -36,9 +36,11 @@ import software.bernie.geckolib.core.animatable.instance.SingletonAnimatableInst
 import software.bernie.geckolib.core.animation.*;
 import software.bernie.geckolib.core.object.PlayState;
 
-public class BeaverEntity extends TamableAnimal implements GeoEntity {
+public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
     private AnimatableInstanceCache cache = new SingletonAnimatableInstanceCache(this);
-    public BeaverEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
+    private Goal landOnOwnersShoulderGoal;
+
+    public BeaverEntity(EntityType<? extends ShoulderRidingEntity> entityType, Level level) {
         super(entityType, level);
     }
 
@@ -66,8 +68,6 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.25D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.0D, 10.0F, 2.0F, false));
-
-        this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(6, (new HurtByTargetGoal(this)).setAlertOthers());
     }
@@ -111,7 +111,7 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
 
         Item itemForTaming = Items.GOLDEN_CARROT;
 
-        if(isFood(itemstack)) {
+        if (isFood(itemstack)) {
             return super.mobInteract(player, hand);
         }
 
@@ -128,8 +128,11 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
                         super.tame(player);
                         this.navigation.recomputePath();
                         this.setTarget(null);
-                        this.getEntityLevel().broadcastEntityEvent(this, (byte)7);
-                        setSitting(true);
+                        this.getEntityLevel().broadcastEntityEvent(this, (byte) 7);
+                        if (this.isBaby()) {
+                            this.landOnOwnersShoulderGoal = new LandOnOwnersShoulderGoal(this);
+                            this.goalSelector.addGoal(4, this.landOnOwnersShoulderGoal);
+                        }
                     }
                 }
 
@@ -137,7 +140,7 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
             }
         }
 
-        if(isTame() && !this.getEntityLevel().isClientSide && hand == InteractionHand.MAIN_HAND) {
+        if (isTame() && !this.getEntityLevel().isClientSide && hand == InteractionHand.MAIN_HAND) {
             setSitting(!isSitting());
             return InteractionResult.SUCCESS;
         }
@@ -191,7 +194,7 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
     }
 
     private <T extends GeoAnimatable> PlayState predicate(AnimationState<T> tAnimationState) {
-        if(tAnimationState.isMoving()) {
+        if (tAnimationState.isMoving()) {
             tAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.beaver.walk", Animation.LoopType.LOOP));
             return PlayState.CONTINUE;
         }
@@ -199,6 +202,14 @@ public class BeaverEntity extends TamableAnimal implements GeoEntity {
 
         tAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.beaver.idle", Animation.LoopType.LOOP));
         return PlayState.CONTINUE;
+    }
+
+    @Override
+    public void ageUp(int growthSeconds) {
+        super.ageUp(growthSeconds);
+        if (!this.isBaby() && this.landOnOwnersShoulderGoal != null) {
+            this.goalSelector.removeGoal(this.landOnOwnersShoulderGoal);
+        }
     }
 
     @Override

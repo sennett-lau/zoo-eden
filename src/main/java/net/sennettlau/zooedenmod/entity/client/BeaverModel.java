@@ -1,9 +1,9 @@
 package net.sennettlau.zooedenmod.entity.client;
 
-import net.sennettlau.zooedenmod.ZooEdenMod;
-import net.sennettlau.zooedenmod.entity.custom.BeaverEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.sennettlau.zooedenmod.ZooEdenMod;
+import net.sennettlau.zooedenmod.entity.custom.BeaverEntity;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 import software.bernie.geckolib.core.animation.AnimationState;
