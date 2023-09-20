@@ -8,13 +8,16 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
@@ -25,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.sennettlau.zooedenmod.entity.ModEntities;
@@ -37,39 +41,39 @@ import software.bernie.geckolib.core.animation.*;
 import software.bernie.geckolib.core.object.PlayState;
 
 public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
+    public static final int TOTAL_AIR_SUPPLY = 600;
     private AnimatableInstanceCache cache = new SingletonAnimatableInstanceCache(this);
     private Goal landOnOwnersShoulderGoal;
 
     public BeaverEntity(EntityType<? extends ShoulderRidingEntity> entityType, Level level) {
         super(entityType, level);
+        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.moveControl = new BeaverMoveControl(this, 85, 10, 3F);
+        this.setAirSupply(TOTAL_AIR_SUPPLY);
     }
 
-    private static final EntityDataAccessor<Boolean> SITTING =
-            SynchedEntityData.defineId(BeaverEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SITTING = SynchedEntityData.defineId(BeaverEntity.class, EntityDataSerializers.BOOLEAN);
 
     public Level getEntityLevel() {
         return level();
     }
 
     public static AttributeSupplier setAttributes() {
-        return Animal.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 16D)
-                .add(Attributes.MOVEMENT_SPEED, 0.4f)
-                .add(Attributes.FOLLOW_RANGE, 16D)
-                .add(Attributes.ATTACK_DAMAGE, 1D)
-                .build();
+        return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 16D).add(Attributes.MOVEMENT_SPEED, 0.3f).add(Attributes.FOLLOW_RANGE, 16D).add(Attributes.ATTACK_DAMAGE, 1D).build();
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new BreathAirGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(2, new PanicGoal(this, 1.25D));
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.25D));
         this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.0D, 3.0F, 2.0F, false));
+        this.goalSelector.addGoal(4, new RandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(4, new RandomSwimmingGoal(this, 1.0D, 10));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
-        this.targetSelector.addGoal(6, (new HurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
     }
 
     @Nullable
@@ -101,6 +105,19 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
 
     protected float getSoundVolume() {
         return 0.2F;
+    }
+
+    /* In Water */
+    public int getMaxAirSupply() {
+        return TOTAL_AIR_SUPPLY;
+    }
+
+    protected int increaseAirSupply(int p_28389_) {
+        return this.getMaxAirSupply();
+    }
+
+    public void baseTick() {
+        super.baseTick();
     }
 
     /* TAMEABLE */
@@ -198,7 +215,7 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
             tAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.beaver.walk", Animation.LoopType.LOOP));
             return PlayState.CONTINUE;
         }
-        if (this.isSitting())  {
+        if (this.isSitting()) {
             tAnimationState.getController().setAnimation(RawAnimation.begin().then("animation.beaver.sit", Animation.LoopType.LOOP));
             return PlayState.CONTINUE;
         }
@@ -219,5 +236,72 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    static class BeaverMoveControl extends MoveControl {
+        private final BeaverEntity beaver;
+        private static final float FULL_SPEED_TURN_THRESHOLD = 10.0F;
+        private static final float STOP_TURN_THRESHOLD = 60.0F;
+        private final int maxTurnX;
+        private final int maxTurnY;
+        private final float inWaterSpeedModifier;
+
+        BeaverMoveControl(BeaverEntity beaver, int maxTurnX, int maxTurnY, float inWaterSpeedModifier) {
+            super(beaver);
+            this.beaver = beaver;
+            this.maxTurnX = maxTurnX;
+            this.maxTurnY = maxTurnY;
+            this.inWaterSpeedModifier = inWaterSpeedModifier;
+        }
+
+        private void updateSpeed() {
+            if (this.beaver.isInWater() && this.beaver.getAirSupply() < 50) {
+                this.beaver.setDeltaMovement(this.beaver.getDeltaMovement().add(0.0D, 0.02D, 0.0D));
+            } else if (this.beaver.onGround()) {
+                if (this.beaver.isBaby()) {
+                    this.beaver.setSpeed(0.2f);
+                } else {
+                    this.beaver.setSpeed(0.4f);
+                }
+            }
+        }
+
+        public void tick() {
+            this.updateSpeed();
+
+            if (this.beaver.isInWater()) {
+                this.inWaterTick();
+            } else {
+                super.tick();
+            }
+        }
+
+        private void inWaterTick() {
+            double d0 = this.wantedX - this.mob.getX();
+            double d1 = this.wantedY - this.mob.getY();
+            double d2 = this.wantedZ - this.mob.getZ();
+            double d3 = d0 * d0 + d1 * d1 + d2 * d2;
+            if (d3 < (double) 2.5000003E-7F) {
+                this.mob.setZza(0.0F);
+            } else {
+                float f = (float) (Mth.atan2(d2, d0) * (double) (180F / (float) Math.PI)) - 90.0F;
+                this.mob.setYRot(this.rotlerp(this.mob.getYRot(), f, (float) this.maxTurnY));
+                this.mob.yBodyRot = this.mob.getYRot();
+                this.mob.yHeadRot = this.mob.getYRot();
+                float f1 = (float) (this.speedModifier * this.mob.getAttributeValue(Attributes.MOVEMENT_SPEED));
+                this.mob.setSpeed(f1 * this.inWaterSpeedModifier);
+                double d4 = Math.sqrt(d0 * d0 + d2 * d2);
+                if (Math.abs(d1) > (double) 1.0E-5F || Math.abs(d4) > (double) 1.0E-5F) {
+                    float f3 = -((float) (Mth.atan2(d1, d4) * (double) (180F / (float) Math.PI)));
+                    f3 = Mth.clamp(Mth.wrapDegrees(f3), (float) (-this.maxTurnX), (float) this.maxTurnX);
+                    this.mob.setXRot(this.rotlerp(this.mob.getXRot(), f3, 5.0F));
+                }
+
+                float f6 = Mth.cos(this.mob.getXRot() * ((float) Math.PI / 180F));
+                float f4 = Mth.sin(this.mob.getXRot() * ((float) Math.PI / 180F));
+                this.mob.zza = f6 * f1;
+                this.mob.yya = -f4 * f1;
+            }
+        }
     }
 }
