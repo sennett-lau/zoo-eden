@@ -12,12 +12,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.AgeableMob;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
+import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
@@ -38,18 +37,18 @@ import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animatable.instance.SingletonAnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.object.PlayState;
 
 public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
-    public static final int TOTAL_AIR_SUPPLY = 600;
     private AnimatableInstanceCache cache = new SingletonAnimatableInstanceCache(this);
     private Goal landOnOwnersShoulderGoal;
 
     public BeaverEntity(EntityType<? extends ShoulderRidingEntity> entityType, Level level) {
         super(entityType, level);
         this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.moveControl = new BeaverMoveControl(this, 85, 10, 3F);
-        this.setAirSupply(TOTAL_AIR_SUPPLY);
+        this.moveControl = new BeaverMoveControl(this, 10, 10, 0.5F);
+        this.lookControl = new SmoothSwimmingLookControl(this, 20);
     }
 
     private static final EntityDataAccessor<Boolean> SITTING = SynchedEntityData.defineId(BeaverEntity.class, EntityDataSerializers.BOOLEAN);
@@ -105,19 +104,6 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
 
     protected float getSoundVolume() {
         return 0.2F;
-    }
-
-    /* In Water */
-    public int getMaxAirSupply() {
-        return TOTAL_AIR_SUPPLY;
-    }
-
-    protected int increaseAirSupply(int p_28389_) {
-        return this.getMaxAirSupply();
-    }
-
-    public void baseTick() {
-        super.baseTick();
     }
 
     /* TAMEABLE */
@@ -255,8 +241,9 @@ public class BeaverEntity extends ShoulderRidingEntity implements GeoEntity {
         }
 
         private void updateSpeed() {
-            if (this.beaver.isInWater() && this.beaver.getAirSupply() < 50) {
-                this.beaver.setDeltaMovement(this.beaver.getDeltaMovement().add(0.0D, 0.02D, 0.0D));
+            if (this.beaver.isInWater()) {
+                double yDelta = this.beaver.getAirSupply() < 70 ? 0.02D : 0.005D;
+                this.beaver.setDeltaMovement(this.beaver.getDeltaMovement().add(0.0D, yDelta, 0.0D));
             } else if (this.beaver.onGround()) {
                 if (this.beaver.isBaby()) {
                     this.beaver.setSpeed(0.2f);
